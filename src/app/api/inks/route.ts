@@ -4,21 +4,15 @@ import { Prisma } from '@prisma/client';
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json();
-    const { name, shade, colorHex, stockG } = body;
+    // Now correctly expects stockG to be a number
+    const { name, shade, colorHex, stockG } = await request.json();
 
-    if (!name || !shade || !colorHex || stockG === undefined) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
-    }
-
-    // --- THIS IS THE CRITICAL FIX ---
-    const stockGNumber = parseFloat(stockG);
-    if (isNaN(stockGNumber)) {
-      return NextResponse.json({ error: 'Stock must be a valid number' }, { status: 400 });
+    if (typeof stockG !== 'number') {
+       return NextResponse.json({ error: 'Stock must be a number' }, { status: 400 });
     }
 
     const newInk = await prisma.ink.create({
-      data: { name, shade, colorHex, stockG: stockGNumber },
+      data: { name, shade, colorHex, stockG },
     });
 
     return NextResponse.json(newInk, { status: 201 });
@@ -32,12 +26,8 @@ export async function POST(request: Request) {
 }
 
 export async function GET(request: Request) {
-  // The GET function is already correct and does not need changes.
   try {
-    const inks = await prisma.ink.findMany({
-      where: { isDeleted: false },
-      orderBy: { shade: 'asc' },
-    });
+    const inks = await prisma.ink.findMany({ where: { isDeleted: false }, orderBy: { shade: 'asc' } });
     return NextResponse.json(inks);
   } catch (error) {
     console.error("API Error fetching inks:", error);

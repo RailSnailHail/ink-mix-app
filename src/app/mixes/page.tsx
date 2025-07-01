@@ -66,12 +66,24 @@ export default function MixesPage() {
     setGramsInputs(prev => ({ ...prev, [inkId]: '' }));
   };
 
-  const handleFinishMix = async () => {
-    const response = await fetch('/api/mixes/finish', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mixName, components, swatchHex: newSwatch }),
-    });
+const handleFinishMix = async () => {
+  const response = await fetch('/api/mixes/finish', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ mixName, components, swatchHex: newSwatch }),
+  });
+
+  if (response.ok) {
+    toast.success(`Recipe "${mixName}" saved successfully!`);
+    clearMix();
+    setFinishDialogOpen(false);
+    router.push('/recipes');
+  } else {
+    // --- THIS IS THE NEW ERROR HANDLING LOGIC ---
+    const errorData = await response.json();
+    toast.error(errorData.error || "Failed to save mix. An unknown error occurred.");
+  }
+};
     if (response.ok) {
       toast.success(`Recipe "${mixName}" saved successfully!`);
       clearMix();

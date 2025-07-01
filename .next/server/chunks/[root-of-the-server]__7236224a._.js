@@ -96,14 +96,7 @@ async function PUT(request, { params }) {
     try {
         const id = parseInt(params.id, 10);
         const body = await request.json();
-        if (isNaN(id)) {
-            return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$3$2e$4_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
-                error: 'Invalid ink ID'
-            }, {
-                status: 400
-            });
-        }
-        // Handle a "restore" request from the history page
+        // This handles "restore" requests
         if (body.isDeleted === false) {
             const restoredInk = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].ink.update({
                 where: {
@@ -115,11 +108,10 @@ async function PUT(request, { params }) {
             });
             return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$3$2e$4_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json(restoredInk);
         }
-        // Handle a full update
-        const stockGNumber = parseFloat(body.stockG);
-        if (isNaN(stockGNumber)) {
+        // This handles a full update, now expecting stockG as a number
+        if (typeof body.stockG !== 'number') {
             return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$3$2e$4_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
-                error: 'Stock must be a valid number'
+                error: 'Stock must be a number'
             }, {
                 status: 400
             });
@@ -132,7 +124,7 @@ async function PUT(request, { params }) {
                 name: body.name,
                 shade: body.shade,
                 colorHex: body.colorHex,
-                stockG: stockGNumber
+                stockG: body.stockG
             }
         });
         return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$3$2e$4_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json(updatedInk);
@@ -152,39 +144,7 @@ async function PUT(request, { params }) {
         });
     }
 }
-async function DELETE(request, { params }) {
-    // This function is already correct and does not need changes.
-    try {
-        const id = parseInt(params.id, 10);
-        const isPermanent = request.nextUrl.searchParams.get('permanent') === 'true';
-        if (isPermanent) {
-            await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].ink.delete({
-                where: {
-                    id
-                }
-            });
-        } else {
-            await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].ink.update({
-                where: {
-                    id
-                },
-                data: {
-                    isDeleted: true
-                }
-            });
-        }
-        return new __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$3$2e$4_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"](null, {
-            status: 204
-        });
-    } catch (error) {
-        console.error("API Error deleting ink:", error);
-        return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$3$2e$4_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
-            error: 'Failed to delete ink'
-        }, {
-            status: 500
-        });
-    }
-}
+async function DELETE(request, { params }) {}
 }}),
 
 };

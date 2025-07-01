@@ -94,20 +94,11 @@ var __TURBOPACK__imported__module__$5b$externals$5d2f40$prisma$2f$client__$5b$ex
 ;
 async function POST(request) {
     try {
-        const body = await request.json();
-        const { name, shade, colorHex, stockG } = body;
-        if (!name || !shade || !colorHex || stockG === undefined) {
+        // Now correctly expects stockG to be a number
+        const { name, shade, colorHex, stockG } = await request.json();
+        if (typeof stockG !== 'number') {
             return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$3$2e$4_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
-                error: 'Missing required fields'
-            }, {
-                status: 400
-            });
-        }
-        // --- THIS IS THE CRITICAL FIX ---
-        const stockGNumber = parseFloat(stockG);
-        if (isNaN(stockGNumber)) {
-            return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$3$2e$4_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
-                error: 'Stock must be a valid number'
+                error: 'Stock must be a number'
             }, {
                 status: 400
             });
@@ -117,7 +108,7 @@ async function POST(request) {
                 name,
                 shade,
                 colorHex,
-                stockG: stockGNumber
+                stockG
             }
         });
         return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$3$2e$4_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json(newInk, {
@@ -140,7 +131,6 @@ async function POST(request) {
     }
 }
 async function GET(request) {
-    // The GET function is already correct and does not need changes.
     try {
         const inks = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].ink.findMany({
             where: {

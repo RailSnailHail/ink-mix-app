@@ -1,7 +1,6 @@
 {
   "/api/inks/[id]/route": "app/api/inks/[id]/route.js",
   "/api/inks/route": "app/api/inks/route.js",
-  "/api/mixes/finish/route": "app/api/mixes/finish/route.js",
   "/api/recipes/route": "app/api/recipes/route.js",
   "/favicon.ico/route": "app/favicon.ico/route.js",
   "/inks/page": "app/inks/page.js",
