@@ -3,7 +3,7 @@ import { Inter } from "next/font/google";
 import Link from "next/link";
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
-import { PaintBucket, Palette, TestTube2 } from "lucide-react"; // Icons
+import { PaintBucket, Palette, TestTube2, History } from "lucide-react";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -12,7 +12,6 @@ export const metadata: Metadata = {
   description: "Ink mixing and recipe management",
 };
 
-// --- NEW NAVIGATION SIDEBAR ---
 function Sidebar() {
   return (
     <div className="w-64 bg-gray-50 border-r border-gray-200 flex flex-col">
@@ -33,6 +32,12 @@ function Sidebar() {
           <span>New Mix</span>
         </Link>
       </nav>
+      <nav className="p-4 border-t">
+         <Link href="/inks/history" className="flex items-center gap-3 p-2 rounded-md text-sm text-gray-500 hover:bg-gray-200">
+          <History size={16} />
+          <span>Deleted Ink History</span>
+        </Link>
+      </nav>
     </div>
   );
 }
@@ -43,8 +48,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <html lang="en" className="h-full bg-white">
+      <body className={`${inter.className} h-full`}>
         <div className="flex h-screen bg-gray-100">
           <Sidebar />
           <main className="flex-1 overflow-y-auto">

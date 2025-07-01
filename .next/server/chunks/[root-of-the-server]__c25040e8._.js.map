@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 6, "column": 0}, "map": {"version":3,"sources":[],"names":[],"mappings":"","debugId":null}},
+    {"offset": {"line": 68, "column": 0}, "map": {"version":3,"sources":["file:///home/jim/ink-mix-app/src/app/api/recipes/route.ts"],"sourcesContent":["import { NextResponse } from 'next/server';\nimport { PrismaClient } from '@prisma/client';\nconst prisma = new PrismaClient();            \n\nimport { NextRequest, NextResponse } from 'next/server'; // Add NextRequest\n\nexport async function GET(request: NextRequest) { // Change type to NextRequest\n  try {\n    const showDeleted = request.nextUrl.searchParams.get('deleted') === 'true';\n    const recipes = await prisma.recipe.findMany({\n      where: { isDeleted: showDeleted },\n      include: { /* ... include logic is the same ... */ },\n      orderBy: { name: 'asc' },\n    });\n    return NextResponse.json(recipes);\n  } catch (error) { /* ... */ }\n}"],"names":[],"mappings":";;;AAAA;AACA;;;AACA,MAAM,SAAS,IAAI,6HAAA,CAAA,eAAY;;AAIxB,eAAe,IAAI,OAAoB;IAC5C,IAAI;QACF,MAAM,cAAc,QAAQ,OAAO,CAAC,YAAY,CAAC,GAAG,CAAC,eAAe;QACpE,MAAM,UAAU,MAAM,OAAO,MAAM,CAAC,QAAQ,CAAC;YAC3C,OAAO;gBAAE,WAAW;YAAY;YAChC,SAAS,CAA0C;YACnD,SAAS;gBAAE,MAAM;YAAM;QACzB;QACA,OAAO,+PAAA,CAAA,eAAY,CAAC,IAAI,CAAC;IAC3B,EAAE,OAAO,OAAO,CAAY;AAC9B","debugId":null}}]
+}

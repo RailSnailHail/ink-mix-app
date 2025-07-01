@@ -1,13 +1,11 @@
 generator client {
   provider = "prisma-client-js"
 }
-
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
-
 model Ink {
   id         Int               @id @default(autoincrement())
   name       String            @unique
@@ -18,7 +16,6 @@ model Ink {
   recipes    RecipeComponent[] @relation("InkToRecipeComponent")
   mixes      MixComponent[]    @relation("InkToMixComponent")
 }
-
 model Recipe {
   id         Int               @id @default(autoincrement())
   name       String            @unique
@@ -26,7 +23,6 @@ model Recipe {
   isDeleted  Boolean           @default(false)
   components RecipeComponent[] @relation("RecipeToRecipeComponent")
 }
-
 model RecipeComponent {
   recipeId Int
   inkId    Int
@@ -35,7 +31,6 @@ model RecipeComponent {
   Ink      Ink    @relation("InkToRecipeComponent", fields: [inkId], references: [id])
   @@id([recipeId, inkId])
 }
-
 model Mix {
   id         Int            @id @default(autoincrement())
   name       String
@@ -44,7 +39,6 @@ model Mix {
   notes      String?
   components MixComponent[] @relation("MixToMixComponent")
 }
-
 model MixComponent {
   mixId Int
   inkId Int

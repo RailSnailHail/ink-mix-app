@@ -3,8 +3,6 @@
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { useRouter } from 'next/navigation';
-
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogDescription } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
@@ -20,7 +18,7 @@ const formSchema = z.object({
   id: z.number().optional(),
   name: z.string().min(2, "Name requires at least 2 characters."),
   shade: z.string().min(2, "Shade requires at least 2 characters."),
-  colorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Must be a valid hex code"),
+  colorHex: z.string().regex(/^#[0-9a-fA-F]{6}$/, "Must be a valid hex code like #RRGGBB"),
   stockG: z.coerce.number().min(0, "Stock must be 0 or greater."),
 });
 
@@ -31,17 +29,12 @@ export default function InksPage() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedInk, setSelectedInk] = useState<Ink | null>(null);
   const [confirmText, setConfirmText] = useState("");
-  const router = useRouter();
 
   const form = useForm<z.infer<typeof formSchema>>();
 
   async function fetchInks() {
     const response = await fetch('/api/inks');
-    if (response.ok) {
-      const data = await response.json();
-      // Filter out soft-deleted inks on the client-side
-      setInks(data.filter(ink => !ink.isDeleted));
-    }
+    if (response.ok) setInks(await response.json());
   }
 
   useEffect(() => { fetchInks(); }, []);
@@ -49,28 +42,26 @@ export default function InksPage() {
   const handleAddNew = () => {
     form.reset({ name: "", shade: "", colorHex: "#ffffff", stockG: 0 });
     setIsEditing(false);
+    setConfirmText("");
     setDialogOpen(true);
   };
 
   const handleEdit = (ink: Ink) => {
     form.reset(ink);
     setIsEditing(true);
-    setConfirmText(""); // Reset confirmation text
+    setConfirmText("");
     setDialogOpen(true);
   };
 
   const handleDeleteRequest = (ink: Ink) => {
     setSelectedInk(ink);
-    setConfirmText(""); // Reset confirmation text
+    setConfirmText("");
     setDeleteDialogOpen(true);
   };
 
   const handleDelete = async () => {
-    if (!selectedInk || confirmText !== "Delete") {
-      toast.error("You must type 'Delete' to confirm.");
-      return;
-    }
-
+    if (!selectedInk || confirmText !== "Delete") return toast.error("You must type 'Delete' to confirm.");
+    
     const response = await fetch(`/api/inks/${selectedInk.id}`, { method: 'DELETE' });
     if (response.ok) {
       toast.success(`Ink "${selectedInk.name}" has been deleted.`);
@@ -83,11 +74,7 @@ export default function InksPage() {
   };
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    // High-friction confirmation for editing an existing ink
-    if (isEditing && confirmText !== "Update") {
-        toast.error("You must type 'Update' to confirm changes.");
-        return;
-    }
+    if (isEditing && confirmText !== "Update") return toast.error("You must type 'Update' to confirm changes.");
 
     const url = isEditing ? `/api/inks/${values.id}` : '/api/inks';
     const method = isEditing ? 'PUT' : 'POST';
@@ -124,14 +111,12 @@ export default function InksPage() {
               <FormField control={form.control} name="shade" render={({ field }) => ( <FormItem><FormLabel>Shade Family</FormLabel><FormControl><Input {...field} /></FormControl><FormMessage /></FormItem> )}/>
               <FormField control={form.control} name="colorHex" render={({ field }) => ( <FormItem><FormLabel>Color</FormLabel><FormControl><Input type="color" {...field} className="w-full h-10" /></FormControl><FormMessage /></FormItem> )}/>
               <FormField control={form.control} name="stockG" render={({ field }) => ( <FormItem><FormLabel>Stock (grams)</FormLabel><FormControl><Input type="number" step="0.1" {...field} /></FormControl><FormMessage /></FormItem> )}/>
-
               {isEditing && (
                 <div className="p-3 border-l-4 border-yellow-400 bg-yellow-50 rounded-r-md">
                   <FormLabel>To confirm changes, type "Update" below:</FormLabel>
                   <Input value={confirmText} onChange={(e) => setConfirmText(e.target.value)} className="mt-2" placeholder='Type "Update" to enable save'/>
                 </div>
               )}
-
               <Button type="submit">Save</Button>
             </form>
           </Form>

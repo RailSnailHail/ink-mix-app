@@ -1,23 +1,30 @@
-import { NextResponse } from 'next/server';
-import prisma from '@/lib/prisma';
+import { NextRequest, NextResponse } from 'next/server';
+import { PrismaClient } from '@prisma/client';
 
-export async function GET() {
+const prisma = new PrismaClient();
+
+export async function GET(request: NextRequest) {
   try {
+    const showDeleted = request.nextUrl.searchParams.get('deleted') === 'true';
+
     const recipes = await prisma.recipe.findMany({
-      where: {
-        isDeleted: false, // Only fetch non-deleted recipes
-      },
+      where: { isDeleted: showDeleted },
       include: {
-        // Also include the component details for each recipe
         components: {
           include: {
-            Ink: true, // And the ink details for each component
+            Ink: {
+              // This ensures all necessary ink data is sent to the UI
+              select: {
+                id: true,
+                name: true,
+                shade: true,
+                colorHex: true,
+              },
+            },
           },
         },
       },
-      orderBy: {
-        name: 'asc',
-      },
+      orderBy: { name: 'asc' },
     });
     return NextResponse.json(recipes);
   } catch (error) {

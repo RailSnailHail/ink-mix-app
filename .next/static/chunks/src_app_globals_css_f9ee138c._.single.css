@@ -63,11 +63,10 @@
     --color-red-600: oklch(57.7% .245 27.325);
     --color-yellow-50: oklch(98.7% .026 102.212);
     --color-yellow-400: oklch(85.2% .199 91.936);
-    --color-green-600: oklch(62.7% .194 149.214);
-    --color-blue-600: oklch(54.6% .245 262.881);
     --color-gray-50: oklch(98.5% .002 247.839);
     --color-gray-100: oklch(96.7% .003 264.542);
     --color-gray-200: oklch(92.8% .006 264.531);
+    --color-gray-500: oklch(55.1% .027 264.364);
     --color-gray-700: oklch(37.3% .034 259.733);
     --color-black: #000;
     --color-white: #fff;
@@ -449,10 +448,6 @@
     margin-top: calc(var(--spacing) * 6);
   }
 
-  .mr-2 {
-    margin-right: calc(var(--spacing) * 2);
-  }
-
   .mb-2 {
     margin-bottom: calc(var(--spacing) * 2);
   }
@@ -545,6 +540,14 @@
     height: calc(var(--spacing) * 10);
   }
 
+  .h-24 {
+    height: calc(var(--spacing) * 24);
+  }
+
+  .h-full {
+    height: 100%;
+  }
+
   .h-px {
     height: 1px;
   }
@@ -581,8 +584,8 @@
     width: calc(var(--spacing) * 8);
   }
 
-  .w-32 {
-    width: calc(var(--spacing) * 32);
+  .w-48 {
+    width: calc(var(--spacing) * 48);
   }
 
   .w-64 {
@@ -756,6 +759,12 @@
     gap: 32px;
   }
 
+  :where(.space-y-1 > :not(:last-child)) {
+    --tw-space-y-reverse: 0;
+    margin-block-start: calc(calc(var(--spacing) * 1) * var(--tw-space-y-reverse));
+    margin-block-end: calc(calc(var(--spacing) * 1) * calc(1 - var(--tw-space-y-reverse)));
+  }
+
   :where(.space-y-2 > :not(:last-child)) {
     --tw-space-y-reverse: 0;
     margin-block-start: calc(calc(var(--spacing) * 2) * var(--tw-space-y-reverse));
@@ -768,12 +777,24 @@
     margin-block-end: calc(calc(var(--spacing) * 4) * calc(1 - var(--tw-space-y-reverse)));
   }
 
+  :where(.space-y-8 > :not(:last-child)) {
+    --tw-space-y-reverse: 0;
+    margin-block-start: calc(calc(var(--spacing) * 8) * var(--tw-space-y-reverse));
+    margin-block-end: calc(calc(var(--spacing) * 8) * calc(1 - var(--tw-space-y-reverse)));
+  }
+
   .self-start {
     align-self: flex-start;
   }
 
   .justify-self-end {
     justify-self: flex-end;
+  }
+
+  .truncate {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
   }
 
   .overflow-hidden {
@@ -959,6 +980,10 @@
     background-color: #0000;
   }
 
+  .bg-white {
+    background-color: var(--color-white);
+  }
+
   .bg-yellow-50 {
     background-color: var(--color-yellow-50);
   }
@@ -1037,6 +1062,10 @@
 
   .py-6 {
     padding-block: calc(var(--spacing) * 6);
+  }
+
+  .py-12 {
+    padding-block: calc(var(--spacing) * 12);
   }
 
   .pt-0 {
@@ -1164,10 +1193,6 @@
     color: var(--background);
   }
 
-  .text-blue-600 {
-    color: var(--color-blue-600);
-  }
-
   .text-card-foreground {
     color: var(--card-foreground);
   }
@@ -1180,12 +1205,12 @@
     color: var(--foreground);
   }
 
-  .text-gray-700 {
-    color: var(--color-gray-700);
+  .text-gray-500 {
+    color: var(--color-gray-500);
   }
 
-  .text-green-600 {
-    color: var(--color-green-600);
+  .text-gray-700 {
+    color: var(--color-gray-700);
   }
 
   .text-muted-foreground {
