@@ -29,7 +29,7 @@ export default function MixesPage() {
 
   useEffect(() => {
     async function fetchInks() {
-      const response = await fetch('/api/inks?inStock=true'); // Fetch only in-stock inks
+      const response = await fetch('/api/inks?inStock=true');
       if (response.ok) {
         const data: Ink[] = await response.json();
         const groups = data.reduce((acc, ink) => {
@@ -44,17 +44,17 @@ export default function MixesPage() {
 
   const handleAddPour = (ink: Ink) => {
     const grams = parseFloat(gramsInputs[ink.id] || '0');
-    if (!grams || grams <= 0) {
-      toast.error("Please enter a valid weight.");
-      return;
-    }
+    if (!grams || grams <= 0) return toast.error("Please enter a valid weight.");
     addComponent({ inkId: ink.id, name: ink.name, colorHex: ink.colorHex, grams: grams });
     setGramsInputs(prev => ({ ...prev, [ink.id]: '' }));
   };
 
   const handleFinishAndSaveRecipe = async () => {
-    // This function is correct from previous steps and remains unchanged
-    const response = await fetch('/api/mixes/finish', { /* ... */ });
+    const response = await fetch('/api/mixes/finish', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mixName, components, swatchHex: newSwatch }),
+    });
     if (response.ok) {
       toast.success(`Recipe "${mixName}" saved successfully!`);
       clearMix();
@@ -68,14 +68,18 @@ export default function MixesPage() {
   };
 
   const handleDeductRemix = async () => {
-    // This function is correct from previous steps and remains unchanged
     if (!activeRecipe) return;
     const componentsToDeduct = activeRecipe.components.map(c => ({
         inkId: c.Ink.id,
         grams: c.ratio * targetGrams
     }));
 
-    const response = await fetch('/api/inventory/deduct', { /* ... */ });
+    const response = await fetch('/api/inventory/deduct', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ components: componentsToDeduct }),
+    });
+
     if (response.ok) {
       toast.success("Inventory updated successfully!");
       clearMix();
@@ -87,6 +91,12 @@ export default function MixesPage() {
     }
   };
 
+  const handleComponentGramChange = (newGrams: number, ratio: number) => {
+    if (ratio > 0 && newGrams >= 0) {
+      setTargetGrams(newGrams / ratio);
+    }
+  };
+
   const totalPouredGrams = components.reduce((sum, c) => sum + c.grams, 0);
 
   return (
@@ -94,11 +104,10 @@ export default function MixesPage() {
       <Toaster richColors />
       <div className="container mx-auto p-4">
         {activeRecipe ? (
-          // --- RATIO CALCULATOR UI ---
           <Card>
             <CardHeader>
               <CardTitle>Ratio Calculator: {activeRecipe.name}</CardTitle>
-              <CardDescription>Enter the total final weight you want to create.</CardDescription>
+              <CardDescription>Edit the Total Target Weight, or edit any ingredient's weight to calculate the rest.</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center gap-2 pt-2 mb-4 p-4 bg-muted rounded-md">
@@ -117,7 +126,14 @@ export default function MixesPage() {
                       <TableRow key={comp.Ink.id}>
                         <TableCell className="font-medium">{comp.Ink.name}</TableCell>
                         <TableCell>{(comp.ratio * 100).toFixed(1)}%</TableCell>
-                        <TableCell className="text-right font-bold text-xl text-primary">{(comp.ratio * targetGrams).toFixed(1)}g</TableCell>
+                        <TableCell className="text-right">
+                          <Input 
+                            type="number"
+                            value={(comp.ratio * targetGrams).toFixed(1)}
+                            onChange={(e) => handleComponentGramChange(parseFloat(e.target.value) || 0, comp.ratio)}
+                            className="w-32 text-right font-bold text-lg text-primary"
+                          />
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -125,12 +141,11 @@ export default function MixesPage() {
               </div>
               <div className="flex flex-col sm:flex-row gap-2 mt-6 justify-end">
                 <Button variant="outline" className="w-full sm:w-auto" onClick={() => clearMix()}>Cancel</Button>
-                <Button className="w-full sm:w-auto" onClick={handleDeductRemix}>Confirm & Deduct Amount</Button>
+                <Button className="w-full sm:w-auto" onClick={handleDeductRemix}>Confirm & Deduct This Amount</Button>
               </div>
             </CardContent>
           </Card>
         ) : (
-          // --- FREESTYLE MIX UI ---
           <div className="grid md:grid-cols-3 gap-8">
             <div className="md:col-span-1">
               <h2 className="text-2xl font-bold mb-4">Select Inks</h2>
@@ -170,8 +185,7 @@ export default function MixesPage() {
                       </div>
                     ))}
                   </div>
-                  <hr className="my-4" />
-                  <div className="flex justify-between font-bold text-lg"><span>Total Weight:</span><span>{totalPouredGrams.toFixed(1)}g</span></div>
+                  <hr className="my-4" /><div className="flex justify-between font-bold text-lg"><span>Total Weight:</span><span>{totalPouredGrams.toFixed(1)}g</span></div>
                   <div className="flex flex-col sm:flex-row sm:justify-end gap-2 mt-6">
                     <Button variant="outline" onClick={removeLastComponent} disabled={components.length === 0}>Undo Pour</Button>
                     <Button onClick={() => setFinishDialogOpen(true)} disabled={components.length === 0 || !mixName}>Finish & Save Recipe</Button>
