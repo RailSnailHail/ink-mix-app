@@ -1,0 +1,55 @@
+generator client {
+  provider = "prisma-client-js"
+}
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Ink {
+  id         Int               @id @default(autoincrement())
+  name       String            @unique
+  shade      String
+  colorHex   String
+  stockG     Float             @default(0)
+  isDeleted  Boolean           @default(false)
+  recipes    RecipeComponent[] @relation("InkToRecipeComponent")
+  mixes      MixComponent[]    @relation("InkToMixComponent")
+}
+
+model Recipe {
+  id         Int               @id @default(autoincrement())
+  name       String            @unique
+  swatchHex  String
+  isDeleted  Boolean           @default(false)
+  components RecipeComponent[] @relation("RecipeToRecipeComponent")
+}
+
+model RecipeComponent {
+  recipeId Int
+  inkId    Int
+  ratio    Float
+  Recipe   Recipe @relation("RecipeToRecipeComponent", fields: [recipeId], references: [id])
+  Ink      Ink    @relation("InkToRecipeComponent", fields: [inkId], references: [id])
+  @@id([recipeId, inkId])
+}
+
+model Mix {
+  id         Int            @id @default(autoincrement())
+  name       String
+  createdAt  DateTime       @default(now())
+  swatchHex  String?
+  notes      String?
+  components MixComponent[] @relation("MixToMixComponent")
+}
+
+model MixComponent {
+  mixId Int
+  inkId Int
+  grams Float
+  ratio Float?
+  Mix   Mix @relation("MixToMixComponent", fields: [mixId], references: [id])
+  Ink   Ink @relation("InkToMixComponent", fields: [inkId], references: [id])
+  @@id([mixId, inkId])
+}

@@ -1,0 +1,6 @@
+{
+  "/api/inks/route": "app/api/inks/route.js",
+  "/favicon.ico/route": "app/favicon.ico/route.js",
+  "/inks/page": "app/inks/page.js",
+  "/mixes/page": "app/mixes/page.js"
+}
