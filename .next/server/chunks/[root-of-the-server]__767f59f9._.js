@@ -94,12 +94,20 @@ var __TURBOPACK__imported__module__$5b$externals$5d2f40$prisma$2f$client__$5b$ex
 ;
 async function POST(request) {
     try {
-        // The body now correctly contains stockG as a number from the client
-        const { name, shade, colorHex, stockG } = await request.json();
-        // Basic validation remains useful as a fallback
+        const body = await request.json();
+        const { name, shade, colorHex, stockG } = body;
         if (!name || !shade || !colorHex || stockG === undefined) {
             return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$3$2e$4_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
                 error: 'Missing required fields'
+            }, {
+                status: 400
+            });
+        }
+        // --- THIS IS THE CRITICAL FIX ---
+        const stockGNumber = parseFloat(stockG);
+        if (isNaN(stockGNumber)) {
+            return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$3$2e$4_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+                error: 'Stock must be a valid number'
             }, {
                 status: 400
             });
@@ -109,23 +117,20 @@ async function POST(request) {
                 name,
                 shade,
                 colorHex,
-                stockG
+                stockG: stockGNumber
             }
         });
         return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$3$2e$4_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json(newInk, {
             status: 201
         });
     } catch (error) {
-        // --- THIS IS THE NEW ERROR HANDLING ---
-        // Check if the error is a unique constraint violation (duplicate name)
         if (error instanceof __TURBOPACK__imported__module__$5b$externals$5d2f40$prisma$2f$client__$5b$external$5d$__$2840$prisma$2f$client$2c$__cjs$29$__["Prisma"].PrismaClientKnownRequestError && error.code === 'P2002') {
             return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$3$2e$4_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
                 error: 'An ink with this name already exists.'
             }, {
                 status: 409
-            }); // 409 Conflict
+            });
         }
-        // For all other errors
         console.error("API Error creating ink:", error);
         return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$3$2e$4_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
             error: 'Failed to create ink on the server.'
@@ -134,9 +139,13 @@ async function POST(request) {
         });
     }
 }
-async function GET() {
+async function GET(request) {
+    // The GET function is already correct and does not need changes.
     try {
         const inks = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$route$5d$__$28$ecmascript$29$__["default"].ink.findMany({
+            where: {
+                isDeleted: false
+            },
             orderBy: {
                 shade: 'asc'
             }

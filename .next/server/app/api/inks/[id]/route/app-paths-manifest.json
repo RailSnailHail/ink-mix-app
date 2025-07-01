@@ -1,0 +1,3 @@
+{
+  "/api/inks/[id]/route": "app/api/inks/[id]/route.js"
+}

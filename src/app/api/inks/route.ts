@@ -4,36 +4,38 @@ import { Prisma } from '@prisma/client';
 
 export async function POST(request: Request) {
   try {
-    // The body now correctly contains stockG as a number from the client
-    const { name, shade, colorHex, stockG } = await request.json();
+    const body = await request.json();
+    const { name, shade, colorHex, stockG } = body;
 
-    // Basic validation remains useful as a fallback
     if (!name || !shade || !colorHex || stockG === undefined) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 
+    // --- THIS IS THE CRITICAL FIX ---
+    const stockGNumber = parseFloat(stockG);
+    if (isNaN(stockGNumber)) {
+      return NextResponse.json({ error: 'Stock must be a valid number' }, { status: 400 });
+    }
+
     const newInk = await prisma.ink.create({
-      data: { name, shade, colorHex, stockG }, // No parseFloat needed
+      data: { name, shade, colorHex, stockG: stockGNumber },
     });
 
     return NextResponse.json(newInk, { status: 201 });
   } catch (error) {
-    // --- THIS IS THE NEW ERROR HANDLING ---
-    // Check if the error is a unique constraint violation (duplicate name)
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-      return NextResponse.json({ error: 'An ink with this name already exists.' }, { status: 409 }); // 409 Conflict
+      return NextResponse.json({ error: 'An ink with this name already exists.' }, { status: 409 });
     }
-
-    // For all other errors
     console.error("API Error creating ink:", error);
     return NextResponse.json({ error: 'Failed to create ink on the server.' }, { status: 500 });
   }
 }
 
-// The GET function does not need any changes.
-export async function GET() {
+export async function GET(request: Request) {
+  // The GET function is already correct and does not need changes.
   try {
     const inks = await prisma.ink.findMany({
+      where: { isDeleted: false },
       orderBy: { shade: 'asc' },
     });
     return NextResponse.json(inks);

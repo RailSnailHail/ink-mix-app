@@ -1,9 +1,8 @@
 "use client";
 
 import { useState, useEffect } from 'react';
-import { useMixStore, Recipe } from '@/lib/store';
+import { useMixStore, type Recipe } from '@/lib/store';
 import { useRouter } from 'next/navigation';
-// ... (keep all other imports from the previous version: Accordion, Button, Card, etc.)
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -11,25 +10,23 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Toaster, toast } from 'sonner';
 import { HexColorPicker } from 'react-colorful';
-import Link from 'next/link';
 
 type Ink = { id: number; name: string; shade: string; colorHex: string; };
 type GroupedInks = { [key: string]: Ink[] };
 
 export default function MixesPage() {
-  // --- All state and store hooks ---
   const [groupedInks, setGroupedInks] = useState<GroupedInks>({});
   const [gramsInputs, setGramsInputs] = useState<{ [key: number]: string }>({});
   const [finishDialogOpen, setFinishDialogOpen] = useState(false);
   const [newSwatch, setNewSwatch] = useState("#808080");
   const router = useRouter();
+
   const { 
     mixName, setMixName, components, addComponent, removeLastComponent, clearMix, 
-    activeRecipe, targetGrams, setTargetGrams 
+    activeRecipe, targetGrams, setTargetGrams, setActiveRecipe
   } = useMixStore();
 
-  // --- All handlers and useEffects ---
-  useEffect(() => { /* ... fetchInks logic is identical ... */
+  useEffect(() => {
     async function fetchInks() {
       const response = await fetch('/api/inks');
       if (response.ok) {
@@ -42,16 +39,34 @@ export default function MixesPage() {
       }
     }
     fetchInks();
-   }, []);
+  }, []);
+
+  useEffect(() => {
+    if (activeRecipe && components.length === 1) {
+      const pouredComponent = components[0];
+      const recipeComponent = activeRecipe.components.find(c => c.Ink.id === pouredComponent.inkId);
+
+      if (recipeComponent && recipeComponent.ratio > 0) {
+        const newTotalTarget = pouredComponent.grams / recipeComponent.ratio;
+        if (Math.abs(newTotalTarget - targetGrams) > 0.01) {
+          setTargetGrams(newTotalTarget);
+          toast.info(`Total target weight rescaled to ${newTotalTarget.toFixed(1)}g`);
+        }
+      }
+    }
+  }, [components, activeRecipe, setTargetGrams, targetGrams]);
 
   const handleAddPour = (inkId: number, inkName: string, inkColor: string, gramsValue: string) => {
     const grams = parseFloat(gramsValue);
-    if (!grams || grams <= 0) return toast.error("Please enter a valid weight.");
-    addComponent({ inkId, name: inkName, colorHex: inkColor, grams });
+    if (!grams || grams <= 0) {
+      toast.error("Please enter a valid weight.");
+      return;
+    }
+    addComponent({ inkId, name: inkName, colorHex: inkColor, grams: grams });
     setGramsInputs(prev => ({ ...prev, [inkId]: '' }));
   };
 
-  const handleFinishMix = async () => { /* ... this logic is identical ... */ 
+  const handleFinishMix = async () => {
     const response = await fetch('/api/mixes/finish', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -69,20 +84,17 @@ export default function MixesPage() {
 
   const totalPouredGrams = components.reduce((sum, c) => sum + c.grams, 0);
 
-  // --- This is the JSX for the page ---
   return (
     <>
       <Toaster richColors />
       <div className="container mx-auto p-4">
-        {/* CONDITIONAL UI: RENDER BASED ON MODE */}
         {activeRecipe ? (
-          // --- RATIO CALCULATOR MODE ---
           <Card>
             <CardHeader>
               <CardTitle>Re-mixing: {activeRecipe.name}</CardTitle>
-              <CardDescription>Enter a total target weight and add each component.</CardDescription>
+              <CardDescription>Enter a total target weight, or add your first pour to auto-calculate the total.</CardDescription>
               <div className="flex items-center gap-2 pt-2">
-                <label>Total Weight (g):</label>
+                <label>Total Target Weight (g):</label>
                 <Input type="number" value={targetGrams} onChange={e => setTargetGrams(parseFloat(e.target.value) || 0)} className="w-32" />
               </div>
             </CardHeader>
@@ -90,7 +102,7 @@ export default function MixesPage() {
               <div className="space-y-2">
                 {activeRecipe.components.map(comp => {
                   const target = comp.ratio * targetGrams;
-                  const poured = components.find(p => p.inkId === comp.Ink.id)?.grams || 0;
+                  const poured = components.find(p => p.Ink.id === comp.Ink.id)?.grams || 0;
                   const remaining = target - poured;
                   return (
                     <div key={comp.Ink.id} className="p-3 border rounded-md">
@@ -115,13 +127,12 @@ export default function MixesPage() {
               </div>
               <hr className="my-4"/>
               <div className="flex justify-between font-bold text-lg"><span>Total Poured:</span><span>{totalPouredGrams.toFixed(1)}g / {targetGrams.toFixed(1)}g</span></div>
-              <Button className="w-full mt-4" onClick={() => toast.success("Historical mix logged!")}>Log this Mix (No Inventory Deduction)</Button>
+              <Button className="w-full mt-4" onClick={() => {toast.success("Historical mix logged!"); clearMix();}}>Log this Mix & Start Over</Button>
             </CardContent>
           </Card>
         ) : (
-          // --- FREESTYLE MIX MODE ---
           <div className="grid md:grid-cols-3 gap-8">
-            <div className="md:col-span-1"> {/* Ink Picker */}
+            <div className="md:col-span-1">
               <h2 className="text-2xl font-bold mb-4">Select Inks</h2>
               <Accordion type="multiple" className="w-full">
                 {Object.entries(groupedInks).map(([shade, inkList]) => (
@@ -144,7 +155,7 @@ export default function MixesPage() {
                 ))}
               </Accordion>
             </div>
-            <div className="md:col-span-2"> {/* Current Mix Card */}
+            <div className="md:col-span-2">
               <Card>
                 <CardHeader>
                   <CardTitle>Create New Freestyle Mix</CardTitle>
@@ -170,8 +181,6 @@ export default function MixesPage() {
           </div>
         )}
       </div>
-
-      {/* FINISH MIX DIALOG (This is the same as before) */}
       <Dialog open={finishDialogOpen} onOpenChange={setFinishDialogOpen}>
         <DialogContent>
           <DialogHeader><DialogTitle>Save New Recipe: {mixName}</DialogTitle></DialogHeader>
