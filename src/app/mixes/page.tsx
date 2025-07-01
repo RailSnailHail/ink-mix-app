@@ -190,7 +190,7 @@ export default function MixesPage() {
             <div className="flex justify-center my-4"><HexColorPicker color={newSwatch} onChange={setNewSwatch} /></div>
             <div className="flex items-center gap-2 p-2 border rounded-md"><span>Resulting Color Hex:</span><Input value={newSwatch} onChange={(e) => setNewSwatch(e.target.value)} className="font-mono" /></div>
           </div>
-          <Button onClick={handleFinishAndSaveRecipe} className="mt-4 w-full">Save Recipe and Deduct Stock</Button>
+          <Button type="button" onClick={handleFinishAndSaveRecipe} className="mt-4 w-full">Save Recipe and Deduct Stock</Button>
         </DialogContent>
       </Dialog>
     </>

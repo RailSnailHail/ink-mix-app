@@ -3,7 +3,6 @@ import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
-// This function SOFT-DELETES a specific recipe
 export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const id = parseInt(params.id);
@@ -17,16 +16,15 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
   }
 }
 
-// This function RESTORES a specific recipe
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
-    try {
-        const id = parseInt(params.id);
-        const restoredRecipe = await prisma.recipe.update({
-        where: { id },
-        data: { isDeleted: false },
-        });
-        return NextResponse.json(restoredRecipe);
-    } catch (error) {
-        return NextResponse.json({ error: 'Failed to restore recipe' }, { status: 500 });
-    }
+  try {
+    const id = parseInt(params.id);
+    const restoredRecipe = await prisma.recipe.update({
+      where: { id },
+      data: { isDeleted: false },
+    });
+    return NextResponse.json(restoredRecipe);
+  } catch (error) {
+    return NextResponse.json({ error: 'Failed to restore recipe' }, { status: 500 });
+  }
 }

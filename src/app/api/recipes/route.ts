@@ -6,20 +6,13 @@ const prisma = new PrismaClient();
 export async function GET(request: NextRequest) {
   try {
     const showDeleted = request.nextUrl.searchParams.get('deleted') === 'true';
-
     const recipes = await prisma.recipe.findMany({
       where: { isDeleted: showDeleted },
       include: {
         components: {
           include: {
             Ink: {
-              // This ensures all necessary ink data is sent to the UI
-              select: {
-                id: true,
-                name: true,
-                shade: true,
-                colorHex: true,
-              },
+              select: { id: true, name: true, shade: true, colorHex: true },
             },
           },
         },
@@ -28,7 +21,6 @@ export async function GET(request: NextRequest) {
     });
     return NextResponse.json(recipes);
   } catch (error) {
-    console.error("API Error fetching recipes:", error);
     return NextResponse.json({ error: 'Failed to fetch recipes' }, { status: 500 });
   }
 }

@@ -30,6 +30,16 @@ export default function RecipesPage() {
     fetchRecipes();
   }, []);
 
+const handleDelete = async (recipeId: number) => {
+    const response = await fetch(`/api/recipes/${recipeId}`, { method: 'DELETE' });
+    if (response.ok) {
+        toast.success("Recipe moved to history.");
+        fetchRecipes(); // You will need to expose fetchRecipes or refactor
+    } else {
+        toast.error("Failed to delete recipe.");
+    }
+};
+
   const availableShades = useMemo(() => {
     const shades = new Set<string>();
     allRecipes.forEach(recipe => {

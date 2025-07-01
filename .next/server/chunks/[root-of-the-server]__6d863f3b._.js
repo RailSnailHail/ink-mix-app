@@ -76,8 +76,6 @@ var __TURBOPACK__imported__module__$5b$externals$5d2f40$prisma$2f$client__$5b$ex
 ;
 const prisma = new __TURBOPACK__imported__module__$5b$externals$5d2f40$prisma$2f$client__$5b$external$5d$__$2840$prisma$2f$client$2c$__cjs$29$__["PrismaClient"]();
 async function GET() {
-    // This route is for POST requests only.
-    // We return a 405 Method Not Allowed error with a clear JSON message.
     return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$3$2e$4_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
         error: "Method Not Allowed. Please use POST to finalize a mix."
     }, {
@@ -103,7 +101,6 @@ async function POST(request) {
             });
         }
         const result = await prisma.$transaction(async (tx)=>{
-            // Create a permanent, reusable Recipe
             const newRecipe = await tx.recipe.upsert({
                 where: {
                     name: mixName
@@ -129,7 +126,6 @@ async function POST(request) {
                     }
                 }
             });
-            // Deduct from Ink Inventory
             for (const component of components){
                 await tx.ink.update({
                     where: {
@@ -148,8 +144,14 @@ async function POST(request) {
             status: 201
         });
     } catch (error) {
+        if (error instanceof __TURBOPACK__imported__module__$5b$externals$5d2f40$prisma$2f$client__$5b$external$5d$__$2840$prisma$2f$client$2c$__cjs$29$__["Prisma"].PrismaClientKnownRequestError && error.code === 'P2002') {
+            return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$3$2e$4_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
+                error: 'A recipe with this name already exists.'
+            }, {
+                status: 409
+            });
+        }
         const errorMessage = error instanceof Error ? error.message : 'An unknown server error occurred.';
-        console.error("API Error finishing mix:", error);
         return __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f2e$pnpm$2f$next$40$15$2e$3$2e$4_react$2d$dom$40$19$2e$1$2e$0_react$40$19$2e$1$2e$0_$5f$react$40$19$2e$1$2e$0$2f$node_modules$2f$next$2f$server$2e$js__$5b$app$2d$route$5d$__$28$ecmascript$29$__["NextResponse"].json({
             error: errorMessage
         }, {
